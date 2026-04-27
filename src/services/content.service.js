@@ -84,15 +84,10 @@ export const updateContent = async ({
 
 export const getLiveContentService = async (teacherId) => {
 
+  const cacheKey = `live:${teacherId}`;
+
   if (redisClient) {
-
-    const cacheKey = `live:${teacherId}`;
-
     const cached = await redisClient.get(cacheKey);
-
-    if (cached) {
-      return JSON.parse(cached);
-    }
 
     if (cached) {
       console.log("cache hit");
@@ -116,23 +111,20 @@ export const getLiveContentService = async (teacherId) => {
     },
   });
 
-
   if (!contents.length) return null;
 
   const scheduleList = contents
-    .map((content) =>
+    .flatMap((content) =>
       content.schedules.map((s) => ({
         content,
         rotationOrder: s.rotationOrder,
         duration: s.duration,
       }))
-    )
-    .flat();
+    );
 
   if (!scheduleList.length) return null;
 
   scheduleList.sort((a, b) => a.rotationOrder - b.rotationOrder);
-
 
   const totalDuration = scheduleList.reduce(
     (sum, item) => sum + item.duration,
@@ -140,27 +132,26 @@ export const getLiveContentService = async (teacherId) => {
   );
 
   const currentTime = Math.floor(Date.now() / 1000);
-
   const timeInCycle = currentTime % totalDuration;
 
   let cumulative = 0;
-  const activeContent;
+  let activeContent = null;
 
   for (let item of scheduleList) {
     cumulative += item.duration;
 
     if (timeInCycle < cumulative) {
       activeContent = item.content;
+      break; 
     }
   }
 
-  if (redisClient) {
+  if (redisClient && activeContent) {
     await redisClient.setEx(cacheKey, 10, JSON.stringify(activeContent));
   }
 
-  return null;
+  return activeContent;
 };
-
 
 
 export const getContentService = async (query) => {
