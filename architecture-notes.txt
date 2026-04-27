@@ -1,0 +1,219 @@
+CONTENT BROADCASTING SYSTEM - ARCHITECTURE NOTES
+
+---
+
+1. AUTHENTICATION & RBAC
+
+* JWT-based authentication is used
+* Passwords are hashed using bcrypt
+
+Flow:
+
+* User logs in → receives JWT
+* Token sent in Authorization header
+* Middleware verifies token and attaches user
+
+RBAC:
+
+* Roles: TEACHER, PRINCIPAL
+
+TEACHER:
+
+* Upload content
+* View own content
+* Schedule content
+
+PRINCIPAL:
+
+* View all content
+* Approve / Reject content
+
+---
+
+2. SUBJECT-BASED DESIGN
+
+* Subjects stored in separate table
+* Each content linked using subjectId
+
+Purpose:
+
+* avoids duplication
+* supports filtering
+* enables structured grouping
+
+---
+
+3. FILE UPLOAD SYSTEM
+
+* Multer middleware handles file uploads
+* Supported formats: JPG, PNG, GIF
+* Files stored locally in `/uploads`
+
+Stored in DB:
+
+* fileUrl
+* fileType
+* fileSize
+
+Note:
+
+* Can be extended to cloud storage (S3)
+
+---
+
+4. CONTENT APPROVAL FLOW
+
+Lifecycle:
+
+* PENDING → APPROVED / REJECTED
+
+Flow:
+
+* Teacher uploads → PENDING
+* Principal reviews:
+
+  * APPROVED → becomes eligible
+  * REJECTED → rejection reason stored
+
+Security:
+
+* Only PRINCIPAL can change status
+
+---
+
+5. SCHEDULING & ROTATION LOGIC (CORE)
+
+Teacher controls scheduling.
+
+Scheduling fields:
+
+* startTime
+* endTime
+* duration (minutes)
+
+Rules:
+
+* Content must be:
+
+  * APPROVED
+  * within startTime and endTime
+
+---
+
+Rotation Logic (Teacher-Based):
+
+Step 1:
+Fetch all content for given teacherId
+
+Step 2:
+Filter:
+
+* status = APPROVED
+* current time within start & end
+
+Step 3:
+Sort content (consistent order)
+
+Step 4:
+Calculate:
+totalDuration = sum of all durations
+
+Step 5:
+Compute:
+timeInCycle = currentTime % totalDuration
+
+Step 6:
+Loop through content:
+
+* keep cumulative duration
+* return content where timeInCycle falls
+
+Behavior:
+
+* continuous loop
+* dynamic content switching
+* independent per teacher
+
+---
+
+6. DATABASE DESIGN
+
+Tables:
+
+* User
+* Subject
+* Content
+* ContentSchedule
+
+Relations:
+
+* Content → User (uploadedBy)
+* Content → Subject
+* Schedule → Content
+
+Design decisions:
+
+* normalized schema
+* enums for role and status
+* supports efficient queries
+
+---
+
+7. FOLDER STRUCTURE
+
+src/
+
+* controllers → request/response
+* services → business logic
+* routes → endpoints
+* middlewares → auth, RBAC, rate limit
+* config → prisma, redis
+* utils → helper functions
+
+Benefits:
+
+* clean architecture
+* easy to scale
+* maintainable
+
+---
+
+8. MIDDLEWARE USAGE
+
+* Authentication middleware → JWT validation
+* Authorization middleware → role checking
+* Multer → file uploads
+* Rate limiting → protects APIs
+
+Benefits:
+
+* reusable logic
+* secure endpoints
+* cleaner controllers
+
+---
+
+9. SCALABILITY APPROACH
+
+Caching:
+
+* Redis used for live API
+* reduces repeated computation
+
+Rate Limiting:
+
+* protects public endpoints
+
+Pagination:
+
+* handles large datasets
+
+Future Improvements:
+
+* S3 for file storage
+* message queues for async tasks
+* horizontal scaling
+
+---
+
+END

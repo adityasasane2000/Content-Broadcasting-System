@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  TEACHER
+  PRINCIPAL
+}
+
+enum ContentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+
+  contents  Content[] @relation("TeacherContent")
+  approved  Content[] @relation("ApprovedBy")
+}
+
+
+model Subject {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  contents  Content[]
+  schedules ContentSchedule[]
+}
+
+
+model Content {
+  id              String   @id @default(uuid())
+  title           String
+  description     String?
+  fileUrl         String
+  fileType        String
+  fileSize        Int
+  status          ContentStatus @default(PENDING)
+
+  rejectionReason String?
+  approvedAt      DateTime?
+
+  startTime       DateTime?
+  endTime         DateTime?
+
+  createdAt       DateTime @default(now())
+
+  subjectId       String
+  subject         Subject @relation(fields: [subjectId], references: [id])
+
+  uploadedById    String
+  uploadedBy      User @relation("TeacherContent", fields: [uploadedById], references: [id])
+
+  approvedById    String?
+  approvedBy      User? @relation("ApprovedBy", fields: [approvedById], references: [id])
+
+  schedules       ContentSchedule[]
+}
+
+model ContentSchedule {
+  id            String   @id @default(uuid())
+  rotationOrder Int
+  duration      Int // minutes
+
+  createdAt     DateTime @default(now())
+
+  contentId     String
+  content       Content @relation(fields: [contentId], references: [id])
+
+  subjectId     String
+  subject       Subject @relation(fields: [subjectId], references: [id])
+}
