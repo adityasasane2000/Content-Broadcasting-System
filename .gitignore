@@ -26,7 +26,7 @@ build/
 src/generated/prisma/
 
 # Uploads (local files)
-uploads/
+# uploads/
 
 # Coverage (testing)
 coverage/
