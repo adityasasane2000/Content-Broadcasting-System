@@ -21,7 +21,7 @@ A backend system where teachers upload content, principals approve/reject it, an
 ### 1. Clone Repository
 
 ```bash
-git clone <your-repo-link>
+git clone https://github.com/adityasasane2000/Content-Broadcasting-System.git
 cd project
 npm install
 ```
