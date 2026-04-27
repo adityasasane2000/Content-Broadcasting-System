@@ -1,5 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
 import authRoutes from "./routes/auth.routes.js";
 import contentRoutes from "./routes/content.routes.js";
 
@@ -7,6 +9,14 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
+
+const uploadDir = path.join(process.cwd(), "src", "uploads");
+
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+app.use("/uploads", express.static(uploadDir));
 
 const PORT = process.env.PORT || 8000;
 
