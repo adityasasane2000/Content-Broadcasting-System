@@ -2,7 +2,7 @@ import express from "express";
 import upload from "../middlewares/upload.middleware.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../middlewares/role.middleware.js";
-import { getContent, getLiveContent, getMyContent, reject, update, uploadContent } from "../controllers/content.controller.js";
+import { getContent, getLiveContent, getMyContent, update, uploadContent } from "../controllers/content.controller.js";
 import { createSchedule } from "../controllers/schedule.controller.js";
 import { publicLimiter } from "../utils/rateLimit.js";
 
