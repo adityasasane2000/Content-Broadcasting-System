@@ -3,8 +3,6 @@ import { createContentSchedule } from "../services/schedule.service.js";
 export const createSchedule = async (req, res) => {
   try {
     const { contentId, rotationOrder, duration } = req.body;
-
-    console.log(contentId);
     
     if (!contentId || rotationOrder == null || !duration) {
       return res.status(400).json({
@@ -16,8 +14,9 @@ export const createSchedule = async (req, res) => {
       contentId,
       rotationOrder,
       duration,
+      user: req.user
     });
-
+    
     return res.status(201).json({
       message: "Schedule created successfully",
       data: result,

@@ -18,6 +18,7 @@ export const authenticate = async (req, res, next) => {
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
     });
+      
 
     if (!user) {
       return res.status(401).json({

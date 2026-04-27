@@ -4,6 +4,7 @@ export const createContentSchedule = async ({
     contentId,
     rotationOrder,
     duration,
+    user,
 }) => {
     const content = await prisma.content.findUnique({
         where: { id: contentId },
@@ -12,7 +13,6 @@ export const createContentSchedule = async ({
     if (!content) {
         throw new Error("Content not found");
     }
-
 
     if (content.status !== "APPROVED") {
         throw new Error("Only approved content can be scheduled");
